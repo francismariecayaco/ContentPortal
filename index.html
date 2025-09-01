@@ -1,14 +1,4 @@
-<!--
-File: /index.html
-App: One-Stop Portal POS + Inventory + Employee/Payroll
-Stack: HTML5 + CSS + Vanilla JS + Firebase (Auth, Firestore, Storage, RTDB)
-Notes:
-- UI mimics Facebook (light) theme.
-- Role-based dashboards: customer, staff, admin-manager, admin-president, superadmin.
-- Inventory logic: FIFO (wet), FEFO (dry), FMFO (gadgets/appliances/clothes by manufactureDate).
-- QR labels: simple SVG QR (tiny encoder embedded). Fallback: show plain text if canvas unsupported.
-- Security: You MUST harden Firebase Security Rules for production (not included here).
--->
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -121,6 +111,10 @@ Notes:
               <p>Graphics & Websites—delivered by our in-house team.</p>
               <button class="btn" data-open="modal-design">Request Design</button>
             </div></div>
+            <div class="card"><h3>Real Estate</h3><div class="content">
+              <p>Lease, rent, or buy properties: condo, rooms, apartments, and houses.</p>
+              <button class="btn" data-nav="services">Request Real Estate</button>
+            </div></div>
             <div class="card"><h3>Shop Products</h3><div class="content">
               <p>Wet goods, dry goods, gadgets & appliances.</p>
               <button class="btn" data-nav="market">Browse</button>
@@ -158,6 +152,29 @@ Notes:
               <button class="btn green" type="submit">Request</button>
             </form>
           </div></div>
+            <div class="card"><h3>Real Estate Services</h3><div class="content">
+              <form id="formRealEstate" class="grid cols-2">
+                <div class="field"><label>Type</label>
+                  <select name="propertyType">
+                    <option>Condo</option>
+                    <option>Room</option>
+                    <option>Apartment</option>
+                    <option>House</option>
+                  </select>
+                </div>
+                <div class="field"><label>Transaction</label>
+                  <select name="transactionType">
+                    <option>Lease</option>
+                    <option>Rent</option>
+                    <option>Buy</option>
+                  </select>
+                </div>
+                <div class="field"><label>Location</label><input name="location" placeholder="City or Area"></div>
+                <div class="field"><label>Budget (₱)</label><input name="budget" type="number" min="0"></div>
+                <div class="field"><label>Details</label><textarea name="details" rows="3" placeholder="Additional requirements"></textarea></div>
+                <button class="btn green" type="submit">Request</button>
+              </form>
+            </div></div>
         </div>
       </div>
 
