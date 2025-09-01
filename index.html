@@ -320,25 +320,13 @@
 
     <!-- Right rail -->
     <aside class="col right-col right-fixed">
-      <div class="card">
+      <!-- <div class="card" id="profileCard">
         <h3>Profile</h3>
         <div class="content">
-          <form id="formProfile" class="grid cols-2">
-            <div class="field"><label>First Name</label><input name="firstName"></div>
-            <div class="field"><label>Middle Name</label><input name="middleName"></div>
-            <div class="field"><label>Last Name</label><input name="lastName"></div>
-            <div class="field"><label>Mobile</label><input name="mobile"></div>
-            <div class="field"><label>Birthday</label><input name="birthday" type="date"></div>
-            <div class="field"><label>Email</label><input name="email" type="email"></div>
-            <div class="field"><label>Address</label><input name="address"></div>
-            <div class="field"><label>Marital Status</label><select name="marital"><option>Single</option><option>Married</option><option>Other</option></select></div>
-            <div class="field"><label>Gender</label><select name="gender"><option>Male</option><option>Female</option><option>Other</option></select></div>
-            <div class="field"><label>Facebook</label><input name="facebook"></div>
-            <button class="btn" type="submit">Save Profile</button>
-          </form>
+          Edit Profile button removed
         </div>
-      </div>
-      <div class="card">
+      </div> -->
+      <div class="card" id="quickActionsCard">
         <h3>Quick Actions</h3>
         <div class="content grid">
           <button class="btn yellow" data-open="modal-leave">Request Leave</button>
@@ -346,6 +334,22 @@
           <button class="btn yellow" data-open="modal-vehicle">Service Vehicle</button>
         </div>
       </div>
+  <!-- Profile Modal -->
+  <div class="modal" id="modal-profile"><div class="box"><div class="card"><h3>Edit Profile</h3><div class="content">
+    <form id="formProfile" class="grid cols-2">
+      <div class="field"><label>First Name</label><input name="firstName"></div>
+      <div class="field"><label>Middle Name</label><input name="middleName"></div>
+      <div class="field"><label>Last Name</label><input name="lastName"></div>
+      <div class="field"><label>Mobile</label><input name="mobile"></div>
+      <div class="field"><label>Birthday</label><input name="birthday" type="date"></div>
+      <div class="field"><label>Email</label><input name="email" type="email"></div>
+      <div class="field"><label>Address</label><input name="address"></div>
+      <div class="field"><label>Marital Status</label><select name="marital"><option>Single</option><option>Married</option><option>Other</option></select></div>
+      <div class="field"><label>Gender</label><select name="gender"><option>Male</option><option>Female</option><option>Other</option></select></div>
+      <div class="field"><label>Facebook</label><input name="facebook"></div>
+      <button class="btn" type="submit">Save Profile</button>
+    </form>
+  </div></div></div></div>
     </aside>
   </main>
 
@@ -391,6 +395,121 @@
       <button class="btn" type="submit">Submit</button>
     </form>
   </div></div></div></div>
+
+<!-- Inside index.html dashboard area -->
+
+<!-- Label Editor Modal -->
+<div id="labelModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
+  <div class="bg-white rounded-lg shadow-lg w-3/4 max-w-3xl p-4">
+    <h2 class="text-xl font-bold mb-2">DYMO Label Editor</h2>
+    <textarea id="label-xml" class="w-full h-48 border p-2 text-sm font-mono"></textarea>
+    <div class="flex justify-end gap-2 mt-3">
+      <button onclick="previewLabel()" class="bg-blue-500 text-white px-4 py-2 rounded">Preview</button>
+      <button onclick="printLabel()" class="bg-green-500 text-white px-4 py-2 rounded">Print</button>
+      <button onclick="closeLabelEditor()" class="bg-gray-400 text-white px-4 py-2 rounded">Close</button>
+    </div>
+    <canvas id="labelPreview" class="border mt-3 w-full"></canvas>
+  </div>
+</div>
+
+<script src="https://dymo.label.com/framework/latest/DYMO.Label.Framework.latest.js"></script>
+<script>
+// Base XML template (59x30mm)
+const defaultLabelXml = `<?xml version="1.0" encoding="utf-8"?>
+<DieCutLabel Version="8.0" Units="twips">
+  <PaperOrientation>Landscape</PaperOrientation>
+  <Id>Address</Id>
+  <PaperName>59mm x 30mm</PaperName>
+  <DrawCommands/>
+  <ObjectInfo>
+    <TextObject>
+      <Name>ProductName</Name>
+      <ForeColor Alpha="255" Red="0" Green="0" Blue="0"/>
+      <BackColor Alpha="0" Red="255" Green="255" Blue="255"/>
+      <Font Family="Arial" Size="10" Bold="True"/>
+      <Text>[[PRODUCT_NAME]]</Text>
+    </TextObject>
+    <Bounds X="100" Y="100" Width="4000" Height="500"/>
+  </ObjectInfo>
+  <ObjectInfo>
+    <BarcodeObject>
+      <Name>Barcode</Name>
+      <ForeColor Alpha="255" Red="0" Green="0" Blue="0"/>
+      <BackColor Alpha="0" Red="255" Green="255" Blue="255"/>
+      <Size>Medium</Size>
+      <Text>[[BATCH_ID]]</Text>
+      <Type>Code128Auto</Type>
+      <TextPosition>Bottom</TextPosition>
+    </BarcodeObject>
+    <Bounds X="100" Y="800" Width="4000" Height="1000"/>
+  </ObjectInfo>
+  <ObjectInfo>
+    <ImageObject>
+      <Name>QRCode</Name>
+      <Image>[[QR_IMAGE_BASE64]]</Image>
+    </ImageObject>
+    <Bounds X="4200" Y="100" Width="1500" Height="1500"/>
+  </ObjectInfo>
+</DieCutLabel>`;
+
+document.getElementById("label-xml").value = defaultLabelXml;
+
+function openLabelEditor(productName, batchId, qrBase64) {
+  document.getElementById("labelModal").classList.remove("hidden");
+  currentProduct = { productName, batchId, qrBase64 };
+}
+
+function closeLabelEditor() {
+  document.getElementById("labelModal").classList.add("hidden");
+}
+
+let currentProduct = { productName: "Sample Product", batchId: "BATCH123", qrBase64: "" };
+
+function getLabel() {
+  let xml = document.getElementById("label-xml").value;
+  let label = dymo.label.framework.openLabelXml(xml);
+  label.setObjectText("ProductName", currentProduct.productName);
+  label.setObjectText("Barcode", currentProduct.batchId);
+  if (currentProduct.qrBase64) label.setObjectText("QRCode", currentProduct.qrBase64);
+  return label;
+}
+
+function previewLabel() {
+  try {
+    let label = getLabel();
+    let pngData = label.render();
+    let ctx = document.getElementById("labelPreview").getContext("2d");
+    let img = new Image();
+    img.onload = () => {
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      ctx.canvas.width = img.width;
+      ctx.canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+    };
+    img.src = "data:image/png;base64," + pngData;
+  } catch (e) {
+    alert("Preview failed: " + e.message);
+  }
+}
+
+function printLabel() {
+  try {
+    let label = getLabel();
+    let printers = dymo.label.framework.getPrinters();
+    if (printers.length === 0) {
+      alert("No DYMO printers found. Falling back to PDF export.");
+      previewLabel();
+      return;
+    }
+    label.print(printers[0].name);
+    alert("Label sent to printer: " + printers[0].name);
+  } catch (e) {
+    alert("Print failed: " + e.message);
+  }
+}
+</script>
+
+
 
   <!-- Firebase SDKs -->
   <script type="module">
@@ -701,6 +820,24 @@
       const adminOnly=['admin'];
       staffOnly.forEach(id=> document.querySelector(`[data-nav="${id}"]`).classList.toggle('hidden', !(role==='staff'||role==='admin-manager'||role==='admin-president'||role==='superadmin')));
       adminOnly.forEach(id=> document.querySelector(`[data-nav="${id}"]`).classList.toggle('hidden', !(role==='superadmin')));
+      // Hide Quick Actions for guest and customer
+      const quickActionsCard = document.getElementById('quickActionsCard');
+      if(quickActionsCard) quickActionsCard.classList.toggle('hidden', role==='guest'||role==='customer');
+    }
+    // Profile modal opener (user name and image)
+    function openProfileModalIfAllowed(){
+      const role = $('#roleBadge').textContent.trim().toLowerCase();
+      if(role==='guest'){
+        alert('Please sign in to edit your profile.');
+        return;
+      }
+      document.getElementById('modal-profile').classList.add('open');
+    }
+    $('#userName').addEventListener('click', openProfileModalIfAllowed);
+    $('#userPic').addEventListener('click', openProfileModalIfAllowed);
+    const btnProfileModal = document.getElementById('btnProfileModal');
+    if(btnProfileModal){
+      btnProfileModal.addEventListener('click', openProfileModalIfAllowed);
     }
 
     // --- AUTH STATE ---
